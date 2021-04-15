@@ -1,0 +1,11 @@
+*.gb
+*.gbc
+
+challenge3/cracker.exp
+challenge3/cracker.lib
+challenge3/cracker.pdb
+challenge3/cracker.exe
+challenge3/cracker
+challenge3/out/
+challenge3/bruh/
+challenge3/.vs/

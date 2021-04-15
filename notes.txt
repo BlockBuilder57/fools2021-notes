@@ -1,0 +1,186 @@
+
+~ tilemap
+D800-DA3F is tilemap
+
+tilemap is 24x24 blocks
+chunks are 16x16 tiles (8x8 blocks)
+one tilemap section contains 9 chunks
+
+
+descriptions are in this order:
+0,1
+2,3
+
+00 (000) - also 4x4 tree?
+0A (010) - normal grass
+0B (011) - wild grass
+0F (015) - 4x4 tree
+32 (050) - tree, pokeball, tree, grass
+33 (051) - tree, tree, grass, pokeball
+34 (052) 
+60 (096) - grass, tree, pokeball, tree
+6C (108) - tree, tree, grass, grass
+6D (109) - tree, grass, tree, grass
+6E (110) - grass, tree, grass, tree
+6F (111) - grass, grass, tree, tree
+74 (116) - dancing flowers
+7A (122) - static flowers? grass?
+
+challenge3.png confirmed tiles:
+(all 0Fs can also be 00s)
+
+0B 0B 0B 74 0A
+0F 0B 0F 0A 0A
+0F 0F 0A 0A 0B
+0F 0B 0A 0A 0A
+
+//seed 0x00000001
+{{0x0B, 0x0A, 0x0F, 0x0F, 0x0F},
+{0x0B, 0x7A, 0x7A, 0x0F, 0x0F},
+{0x7A, 0x7A, 0x0A, 0x33, 0x0F},
+{0x0A, 0x0A, 0x0A, 0x74, 0x0F}};
+
+//seed 0x000002E1
+{{0x0F, 0x6F, 0x0B, 0x0A, 0x74},
+{0x0F, 0x0F, 0x7A, 0x0A, 0x0F},
+{0x0F, 0x0F, 0x0A, 0x0B, 0x0B},
+{0x0A, 0x0A, 0x74, 0x7A, 0x0A}};
+
+//seed 0xC0000281
+{{0x7A, 0x7A, 0x0B, 0x0A, 0x0B},
+{0x0F, 0x0A, 0x0B, 0x74, 0x0B},
+{0x0F, 0x0F, 0x0A, 0x0B, 0x0F},
+{0x6C, 0x0A, 0x0A, 0x74, 0x6E}};
+
+//seed 0xC0000111
+{{0x7A, 0x0F, 0x0F, 0x0F, 0x0F},
+{0x0A, 0x0F, 0x0F, 0x6C, 0x0F},
+{0x0B, 0x0A, 0x0A, 0x7A, 0x6C},
+{0x0B, 0x0B, 0x7A, 0x0A, 0x0A}};
+
+ended at 0x7d2b1
+
+spawn x and y position cannot be assumed past being 0x00 or even
+actually, y can be assumed to be 0, otherwise the player would have spawned up and to the right
+
+the idea is to run a billionty bgbs until a seed is found
+i don't need to check for the top two rows, as they are outside of the chunk, but doing so narrows down the seed
+if the seed has no 0A in the top row, it can be skipped most likely
+seed also has last hex digit of 1 (ie lower nibble of 0b0001) so it can be started at 1 and be incremented by 16
+cuts it down from 4 billion pastabilities to 268 million
+break on the overworld loop? (03FF) yeah seems good
+02:A572 seems faster though, use that
+
+D800 = 1C25 in save state
+seed at 1EDD in save state
+
+D8C8 is the top-left starting chunk
++0x18 (24) = D8E0, block (0, 1)
+-0x30 (48) = D898, two above starting chunk (where the search should actually start)
+
+bgb -rom crackerstart.sna -hf -autoexit -stateonexit crackerend.sna -nobatt -br 02:A572
+
+
+DAC0 - password (5 bytes)
+
+DADE - ?
+DADF - max hp
+DAE0 - cur hp
+DAE1 - level
+DAE2 - exp to next
+DAE5 - bagitems start
+
+DB36 - skip sandwich tick
+DB38 - some kind of game state?
+	bit 0 - entered new biome?
+	bit 1 - summoning salt text?
+	bit 3 set by default?
+DB39 - defeated guardians
+	
+~ biomes
+	Grasslands
+		wCurMap - 1F
+	Construct
+		wCurMap - 0A
+
+
+wItemQuantity determines what item you get?
+
+090103450745084504450C0A0D0A0A0A0B0A0E010F011001
+x01 telltale orb
+x69 hyper potions
+x69 skip sandwiches
+x69 summoning salts
+x69 reviver seeds
+x10 Daredevil Potions
+x10 Bravery Potions
+x10 glitch shards
+x10 shyhorns
+x01 Dark crystal
+x01 Amber Crystal
+x01 Fluffy Crystal
+
+~ items
+00: -----
+	no effect
+01: Potion
+	+20hp
+02: Super Potion
+	+40hp
+03: Hyper Potion
+	+200hp
+04: Reviver Seed
+	revives in battle
+05: Life Seed
+	+3 max hp
+06: Hardened Scale
+	+1 max hp
+07: Skip Sandwich
+	faster movement
+08: Summoning Salt
+	calls forth a boss
+09: Telltale Orb
+	help system
+0A: Glitch Shard
+	summonable
+0B: Shyhorn
+	summonable
+0C: Daredevil Potion
+	boosts enemy level? stats?
+0D: Bravery Potion
+	boost area's enemy levels? stats?
+0E: Dark Crystal
+0F: Amber Crystal
+10: Fluffy Crystal
+11: Sharp Beak
+12: Sharp Horn
+
+PASSWORD INFO:
+register e (zPasswordAchievements) holds bits
+bit 0 is done quick?
+bit 1 is pika > 100 maxHP
+bit 2 is daredevil
+bit 3 is YEDONG
+
+~ submitted things
+15c7d0b176
+	two bosses, died
+1FCDD7D111
+	beat all bosses, strenght stuff, essentially everything but find all mons and hacking challenges
+2FFFD18347
+	beat Scyther, manually set zAchievements to FF
+	only gave scyther and daredevil, but this is good because i didn't use daredevil
+30EBDE9436
+	set zPasswordAchievements before checksum calc
+	badda bing badda boom
+
+~ test
+2DF9D45D50
+	immediately give up?
+2DF9D476CB (3494F559)
+	mostly the same, last two bytes are different
+2DF9D447FA (C7FC326A)
+	same deal as above
+2DF9D4E954 (F5902CC9) frozen time at 0
+2DF9D4C77A (47E656C6) frozen time at 0
+	ha, seed does play a factor
